@@ -47,14 +47,15 @@ while ($drive -eq $null) {
     }
 }
 
-$destinationFolder = Read-Host -Prompt "Enter a folder name for the Windows 10 version on $($drive):"
-$destinationFolder = Join-Path $drive $destinationFolder
+$folderBrowser = New-Object -ComObject Shell.Application
+$destinationFolder = $folderBrowser.BrowseForFolder(0, "Select destination folder", 0, $drive + "\") 
 
-if (-not (Test-Path $destinationFolder)) {
-    New-Item -ItemType Directory -Path $destinationFolder | Out-Null
+if (-not $destinationFolder) {
+    Write-Host "No folder was selected. Exiting script."
+    exit
 }
 
-$destinationFile = Join-Path $destinationFolder "Windows10Version$($input).iso"
+$destinationFile = Join-Path $destinationFolder.Self.Path "Windows10Version$($input).iso"
 
 try {
     Invoke-WebRequest $downloadUrl -OutFile $destinationFile -ErrorAction Stop
