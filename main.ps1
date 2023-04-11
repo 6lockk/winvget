@@ -32,8 +32,8 @@ $downloadUrl = switch ($input) {
     }
 }
 
-$destinationDrive = $null
-while ($destinationDrive -eq $null) {
+$drive = $null
+while ($drive -eq $null) {
     $availableDrives = Get-WmiObject Win32_LogicalDisk | Where-Object {$_.DriveType -eq 3} | Select-Object -ExpandProperty DeviceID
     Write-Host "Please select the destination drive for the download:"
 
@@ -43,26 +43,26 @@ while ($destinationDrive -eq $null) {
 
     $driveInput = Read-Host -Prompt "Enter a number (1-$($availableDrives.Count))"
     if ($driveInput -in 1..$availableDrives.Count) {
-        $destinationDrive = $availableDrives[$driveInput - 1]
+        $drive = $availableDrives[$driveInput - 1]
     }
 }
 
-$destinationFolder = $null
-while ($destinationFolder -eq $null) {
-    $availableFolders = Get-ChildItem -Path $destinationDrive -Directory | Select-Object -ExpandProperty Name
-    Write-Host "Please select a folder to install the Windows 10 version to:"
+$destinationFolder = Read-Host -Prompt "Enter a folder name for the Windows 10 version on $($drive):"
+$destinationFolder = Join-Path $drive $destinationFolder
 
-    for ($i = 0; $i -lt $availableFolders.Count; $i++) {
-        Write-Host "$($i+1). $($availableFolders[$i])"
-    }
-
-    $folderInput = Read-Host -Prompt "Enter a number (1-$($availableFolders.Count))"
-    if ($folderInput -in 1..$availableFolders.Count) {
-        $destinationFolder = Join-Path $destinationDrive $availableFolders[$folderInput - 1]
-    }
+if (-not (Test-Path $destinationFolder)) {
+    New-Item -ItemType Directory -Path $destinationFolder | Out-Null
 }
 
 $destinationFile = Join-Path $destinationFolder "Windows10Version$($input).iso"
 
 try {
-    Invoke-WebRequest $downloadUrl -Out
+    Invoke-WebRequest $downloadUrl -OutFile $destinationFile -ErrorAction Stop
+    Write-Host "Download complete! File saved at $($destinationFile)"
+} catch {
+    if ($_.Exception.Response.StatusCode.Value__ -eq 404) {
+        Write-Host "Error: The URL cannot be found."
+    } else {
+        Write-Host "Error: $_"
+    }
+}
