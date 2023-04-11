@@ -4,10 +4,12 @@ while ($validInput -eq $false) {
     Write-Host "1. Version 22H2"
     Write-Host "2. Version 21H2"
     Write-Host "3. Version 20H2"
+    Write-Host "4. Version 1909"
+    Write-Host "5. Version 1803"
 
-    $input = Read-Host -Prompt "Enter a number (1-3)"
+    $input = Read-Host -Prompt "Enter a number (1-5)"
 
-    if ($input -in 1..3) {
+    if ($input -in 1..5) {
         $validInput = $true
     }
 }
@@ -22,9 +24,23 @@ $downloadUrl = switch ($input) {
     3 {
         "https://software-download.microsoft.com/download/pr/19042.804.2102183152.co_release_svc_prod1_Windows10_InsiderPreview_Client_x64_en-us.iso"
     }
+    4 {
+        "https://software-download.microsoft.com/download/pr/18363.1198.2106120046.rs_x64fre_client_en-us_retail_64e68469.iso"
+    }
+    5 {
+        "https://software-download.microsoft.com/download/pr/17134.1.190411-0538.rs4_release_clientbusiness_vol_x64fre_en-us_8a2a278f9589cde83d0ddc7208b5017b6cabbffb.iso"
+    }
 }
 
-$destinationFolder = Get-Item -Path (New-Object -ComObject Shell.Application).BrowseForFolder(0, "Select download location", 0, "C:\").Self.Path
+$destinationFolder = $null
+while ($destinationFolder -eq $null) {
+    $selectedFolder = (New-Object -ComObject Shell.Application).BrowseForFolder(0, "Select download location", 0, "C:\")
+    if ($selectedFolder -ne $null) {
+        $destinationFolder = $selectedFolder.Self.Path
+    } else {
+        Write-Host "Error: Please select a download location."
+    }
+}
 
 $destinationFile = Join-Path $destinationFolder "Windows10Version$($input).iso"
 
@@ -38,3 +54,4 @@ try {
         Write-Host "Error: $_"
     }
 }
+
