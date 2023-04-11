@@ -66,4 +66,3 @@ $destinationFile = Join-Path $destinationFolder "Windows10Version$($input).iso"
 
 try {
     Invoke-WebRequest $downloadUrl -Out
-
